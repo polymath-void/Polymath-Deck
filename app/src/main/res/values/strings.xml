@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">CrescentDeck</string>
+    <string name="channel_media_name">Media Playback</string>
+    <string name="channel_media_desc">Media playback controls and status</string>
+    <string name="channel_rss_name">RSS Updates</string>
+    <string name="channel_rss_desc">New articles and feed alerts</string>
+    <string name="channel_system_name">System Alerts</string>
+    <string name="channel_system_desc">Crash recovery and important system messages</string>
+    <string name="channel_download_name">Downloads</string>
+    <string name="channel_download_desc">Download progress updates</string>
+</resources>

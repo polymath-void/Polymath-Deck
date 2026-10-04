@@ -1,0 +1,103 @@
+{
+  "generated_at": "2026-10-04T21:42:49.600867+00:00",
+  "workspace": "/data/data/com.termux/files/home/Projects/CrescentDeck",
+  "files": [
+    {
+      "path": "CrescentDeck_Architecture_Blueprint.md",
+      "size": 39192,
+      "type": "markdown",
+      "headers": [
+        {
+          "level": 1,
+          "text": "Crescent Deck \u2014 Hybrid Architecture Blueprint v2.0",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "1. Executive Summary",
+          "line": 11
+        },
+        {
+          "level": 2,
+          "text": "2. Expanded System Architecture \u2014 6-Tier Overview",
+          "line": 26
+        },
+        {
+          "level": 2,
+          "text": "3. New Module Specifications",
+          "line": 99
+        },
+        {
+          "level": 3,
+          "text": "3.1 Picture-in-Picture (PiP) Popup Player",
+          "line": 101
+        },
+        {
+          "level": 3,
+          "text": "3.2 Tab System (TabDeckManager)",
+          "line": 166
+        },
+        {
+          "level": 3,
+          "text": "3.3 Background Playback Service",
+          "line": 238
+        },
+        {
+          "level": 3,
+          "text": "3.4 Movies & Video Playback Engine (MediaPlaybackEngine)",
+          "line": 335
+        },
+        {
+          "level": 3,
+          "text": "3.5 Notification System (NotificationDispatcher)",
+          "line": 406
+        },
+        {
+          "level": 3,
+          "text": "3.6 RSS Feed Grabber (RSSFeedEngine)",
+          "line": 493
+        },
+        {
+          "level": 3,
+          "text": "3.7 Content Router (URI \u2192 Card Type Resolution)",
+          "line": 638
+        },
+        {
+          "level": 2,
+          "text": "4. Expanded Room Schema \u2014 Full ER Diagram",
+          "line": 691
+        },
+        {
+          "level": 2,
+          "text": "5. Media Pipeline \u2014 Complete Data Flow",
+          "line": 794
+        },
+        {
+          "level": 2,
+          "text": "6. Updated Phased Implementation Roadmap (8 Phases)",
+          "line": 829
+        },
+        {
+          "level": 2,
+          "text": "7. Updated Engineering Team Dispatch Matrix",
+          "line": 860
+        },
+        {
+          "level": 2,
+          "text": "8. Expanded Risk Register",
+          "line": 905
+        },
+        {
+          "level": 2,
+          "text": "9. Updated Project File Structure",
+          "line": 921
+        },
+        {
+          "level": 2,
+          "text": "10. Verification Gates (Updated for All 8 Phases)",
+          "line": 1036
+        }
+      ]
+    }
+  ]
+}

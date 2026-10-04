@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Network permissions for RSS, WebView, streaming -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Foreground service for background playback -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <!-- Notifications (API 33+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Wake lock for media playback -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- PiP feature declaration -->
+    <uses-feature
+        android:name="android.software.picture_in_picture"
+        android:required="false" />
+
+    <application
+        android:name=".CrescentDeckApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CrescentDeck"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        tools:targetApi="35">
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".ui.screen.MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:supportsPictureInPicture="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deep link handling -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="crescent"
+                    android:host="card" />
+            </intent-filter>
+        </activity>
+
+        <!-- Fullscreen Video Player Activity -->
+        <activity
+            android:name=".ui.screen.FullscreenPlayerActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden"
+            android:supportsPictureInPicture="true"
+            android:theme="@style/Theme.CrescentDeck.Fullscreen" />
+
+        <!-- Background Playback Foreground Service -->
+        <service
+            android:name=".service.BackgroundPlaybackService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="false" />
+
+        <!-- Feed Refresh WorkManager Worker -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+        <!-- Notification Broadcast Receiver for media actions -->
+        <receiver
+            android:name=".notification.MediaActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.crescentdeck.ACTION_PLAY_PAUSE" />
+                <action android:name="com.crescentdeck.ACTION_SKIP_NEXT" />
+                <action android:name="com.crescentdeck.ACTION_SKIP_PREV" />
+                <action android:name="com.crescentdeck.ACTION_CLOSE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Becoming Noisy Receiver (headphone unplug) -->
+        <receiver
+            android:name=".service.BecomingNoisyReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

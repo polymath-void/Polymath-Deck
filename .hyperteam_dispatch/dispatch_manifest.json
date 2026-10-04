@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-10-04T21:42:59.564768+00:00",
+  "workspace": "/data/data/com.termux/files/home/Projects/CrescentDeck",
+  "milestones": 3,
+  "ownership": {
+    "M1": [],
+    "M2": [],
+    "M3": []
+  },
+  "prompts": {
+    "M1": "/data/data/com.termux/files/home/Projects/CrescentDeck/.hyperteam_dispatch/m1_prompt.md",
+    "M2": "/data/data/com.termux/files/home/Projects/CrescentDeck/.hyperteam_dispatch/m2_prompt.md",
+    "M3": "/data/data/com.termux/files/home/Projects/CrescentDeck/.hyperteam_dispatch/m3_prompt.md"
+  },
+  "verify_prompt": "/data/data/com.termux/files/home/Projects/CrescentDeck/.hyperteam_dispatch/verify_prompt.md"
+}
