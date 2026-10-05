@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.crescentdeck"
+    namespace = "com.polymathdeck"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.crescentdeck"
+        applicationId = "com.polymathdeck"
         minSdk = 28
         targetSdk = 35
         versionCode = 1

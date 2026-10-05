@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CrescentDeck"
+rootProject.name = "PolymathDeck"
 include(":app")

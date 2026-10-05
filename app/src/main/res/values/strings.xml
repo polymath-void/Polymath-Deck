@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CrescentDeck</string>
+    <string name="app_name">PolymathDeck</string>
     <string name="channel_media_name">Media Playback</string>
     <string name="channel_media_desc">Media playback controls and status</string>
     <string name="channel_rss_name">RSS Updates</string>

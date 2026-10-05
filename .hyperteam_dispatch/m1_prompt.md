@@ -11,7 +11,7 @@ RULES:
 5. Run the QA analyzer on your files when done: python ~/.gemini/config/skills/qa-analyzer/scripts/analyzer.py <your_dir>
 6. Report completion with a structured summary of what you wrote.
 
-Working directory: /data/data/com.termux/files/home/Projects/CrescentDeck
+Working directory: /data/data/com.termux/files/home/Projects/PolymathDeck
 
 ## YOUR MILESTONE: M1
 
@@ -22,15 +22,15 @@ Working directory: /data/data/com.termux/files/home/Projects/CrescentDeck
 # HYPERTEAM_CONTEXT — Pre-Compiled Workspace Manifest
 
 > Generated: 2026-10-04T21:42:49.600867+00:00
-> Workspace: `/data/data/com.termux/files/home/Projects/CrescentDeck`
+> Workspace: `/data/data/com.termux/files/home/Projects/PolymathDeck`
 > Total Files: 1
 
 ---
 
 ## `./`
 
-### `CrescentDeck_Architecture_Blueprint.md` (39192 bytes)
-- # Crescent Deck — Hybrid Architecture Blueprint v2.0
+### `PolymathDeck_Architecture_Blueprint.md` (39192 bytes)
+- # Polymath Deck — Hybrid Architecture Blueprint v2.0
 -   ## 1. Executive Summary
 -   ## 2. Expanded System Architecture — 6-Tier Overview
 -   ## 3. New Module Specifications

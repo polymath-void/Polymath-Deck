@@ -22,12 +22,12 @@
         android:required="false" />
 
     <application
-        android:name=".CrescentDeckApplication"
+        android:name=".PolymathDeckApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CrescentDeck"
+        android:theme="@style/Theme.PolymathDeck"
         android:hardwareAccelerated="true"
         android:largeHeap="true"
         tools:targetApi="35">
@@ -50,7 +50,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="crescent"
+                    android:scheme="polymathdeck"
                     android:host="card" />
             </intent-filter>
         </activity>
@@ -60,7 +60,7 @@
             android:name=".ui.screen.FullscreenPlayerActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden"
             android:supportsPictureInPicture="true"
-            android:theme="@style/Theme.CrescentDeck.Fullscreen" />
+            android:theme="@style/Theme.PolymathDeck.Fullscreen" />
 
         <!-- Background Playback Foreground Service -->
         <service
@@ -85,10 +85,10 @@
             android:name=".notification.MediaActionReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.crescentdeck.ACTION_PLAY_PAUSE" />
-                <action android:name="com.crescentdeck.ACTION_SKIP_NEXT" />
-                <action android:name="com.crescentdeck.ACTION_SKIP_PREV" />
-                <action android:name="com.crescentdeck.ACTION_CLOSE" />
+                <action android:name="com.polymathdeck.ACTION_PLAY_PAUSE" />
+                <action android:name="com.polymathdeck.ACTION_SKIP_NEXT" />
+                <action android:name="com.polymathdeck.ACTION_SKIP_PREV" />
+                <action android:name="com.polymathdeck.ACTION_CLOSE" />
             </intent-filter>
         </receiver>
 

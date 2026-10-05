@@ -1,12 +1,12 @@
 <resources>
-    <style name="Theme.CrescentDeck" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.PolymathDeck" parent="android:Theme.Material.NoActionBar">
         <item name="android:statusBarColor">@color/primary_dark</item>
         <item name="android:navigationBarColor">@color/primary_dark</item>
         <item name="android:windowBackground">@color/primary_dark</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="Theme.CrescentDeck.Fullscreen" parent="Theme.CrescentDeck">
+    <style name="Theme.PolymathDeck.Fullscreen" parent="Theme.PolymathDeck">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>

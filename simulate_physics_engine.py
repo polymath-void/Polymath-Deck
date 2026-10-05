@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interactive Real-Time Terminal Simulator & Formal Verification for Crescent Deck Architecture.
+Interactive Real-Time Terminal Simulator & Formal Verification for Polymath Deck Architecture.
 
 Proves:
 1. O(log N) QuadTree spatial partitioning efficiency over O(N) brute force for 256 cards.
@@ -330,7 +330,7 @@ def test_gesture_segregation():
 
 def run_realtime_settling_simulation():
     print("\n" + "="*70)
-    print("🌙 CRESCENT DECK — Real-Time Spatial Physics & Collision Settling")
+    print("🌙 POLYMATH DECK — Real-Time Spatial Physics & Collision Settling")
     print("="*70)
 
     card_a = CardNode("CardA", x=10, y=5, w=14, h=6, anchor_x=10, anchor_y=5, priority=2, label="Card A")
@@ -383,7 +383,7 @@ def run_realtime_settling_simulation():
 
 def main():
     print("="*70)
-    print("🌌 CRESCENT DECK ARCHITECTURAL VERIFICATION & PHYSICS ENGINE SIMULATOR")
+    print("🌌 POLYMATH DECK ARCHITECTURAL VERIFICATION & PHYSICS ENGINE SIMULATOR")
     print("="*70)
 
     test_quadtree_log_n_benchmark()
@@ -392,7 +392,7 @@ def main():
     test_gesture_segregation()
     run_realtime_settling_simulation()
 
-    print("🎉 ALL CRESCENT DECK ARCHITECTURAL SPECIFICATIONS PASS VERIFICATION.")
+    print("🎉 ALL POLYMATH DECK ARCHITECTURAL SPECIFICATIONS PASS VERIFICATION.")
     return 0
 
 if __name__ == "__main__":

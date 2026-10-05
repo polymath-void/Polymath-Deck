@@ -1,4 +1,4 @@
-// Top-level build file for CrescentDeck
+// Top-level build file for PolymathDeck
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
