@@ -69,10 +69,9 @@ fun LiveCardFrame(
                 setBackgroundColor(AndroidColor.TRANSPARENT)
 
                 // SessionLoginBroker: enable persistent first and third party cookies
-                android.webkit.CookieManager.getInstance().apply {
-                    setAcceptCookie(true)
-                    setAcceptThirdPartyCookies(this@apply, true)
-                }
+                val cookieManager = android.webkit.CookieManager.getInstance()
+                cookieManager.setAcceptCookie(true)
+                cookieManager.setAcceptThirdPartyCookies(this, true)
 
                 settings.apply {
                     javaScriptEnabled = true
