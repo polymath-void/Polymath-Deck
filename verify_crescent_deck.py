@@ -60,7 +60,20 @@ def main():
     card_container_kt = (src_dir / "ui/card/SelectiveCardNodeContainer.kt").read_text(encoding="utf-8")
     assert "CardHeaderBar" in card_container_kt, "32dp CardHeaderBar missing in SelectiveCardNodeContainer"
     assert "32.dp" in card_container_kt, "32dp header height missing"
-    print("✅ Verified Gesture Segregation (32dp Header Bar vs Content Body).")
+    assert "0xFFFF5F56" in card_container_kt and "0xFFFFBD2E" in card_container_kt and "0xFF27C93F" in card_container_kt, "Traffic lights missing in HeaderBar"
+    assert "CornerResizeHandle" in card_container_kt, "CornerResizeHandle missing"
+    assert "24.dp" in card_container_kt and "6.dp" in card_container_kt, "Dynamic Z-axis elevation missing"
+    print("✅ Verified Gesture Segregation, Traffic Lights, Dynamic Z-Axis Elevation, and Corner Resizing.")
+
+    canvas_kt = (src_dir / "ui/canvas/DragDropGridCanvas.kt").read_text(encoding="utf-8")
+    assert "dotSpacing" in canvas_kt and "drawCircle" in canvas_kt, "Procedural infinite dot grid missing in Canvas"
+    assert "resistanceX" in canvas_kt and "resistanceY" in canvas_kt, "Elastic edge rubber-banding missing in Canvas"
+    print("✅ Verified Infinite Canvas Procedural Dot Grid and Elastic Edge Rubber-banding.")
+
+    scrim_kt = (src_dir / "ui/card/HibernationScrimOverlay.kt").read_text(encoding="utf-8")
+    assert "desaturationFilter" in scrim_kt, "Desaturation grayscale filter missing in HibernationScrimOverlay"
+    assert "isWaking" in scrim_kt and "CircularProgressIndicator" in scrim_kt, "Cold Start Veil loading spinner missing"
+    print("✅ Verified Resource Governor Hibernation Desaturation & Cold Start Veil.")
 
     theme_kt = (src_dir / "ui/theme/ThemeManager.kt").read_text(encoding="utf-8")
     assert "categoryOverrides" in theme_kt, "Category overrides missing in ThemeManager"

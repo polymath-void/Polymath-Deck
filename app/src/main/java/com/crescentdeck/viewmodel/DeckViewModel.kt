@@ -9,6 +9,7 @@ import com.crescentdeck.data.db.entity.CardEntity
 import com.crescentdeck.data.db.entity.CardType
 import com.crescentdeck.data.db.entity.DeckEntity
 import com.crescentdeck.data.repository.DeckRepository
+import com.crescentdeck.engine.governor.CardLifecycleState
 import com.crescentdeck.engine.governor.WebViewResourceGovernor
 import com.crescentdeck.engine.quadtree.CardNode
 import com.crescentdeck.engine.quadtree.QuadTreePhysicsEngine
@@ -108,6 +109,26 @@ class DeckViewModel @Inject constructor(
         viewModelScope.launch {
             deckRepository.updateCardPosition(cardId, node.x, node.y)
         }
+    }
+
+    fun onCardResize(cardId: String, newWidth: Float, newHeight: Float) {
+        val node = quadTreeEngine.locateNode(cardId) ?: return
+        node.width = newWidth.coerceIn(180f, 1600f)
+        node.height = newHeight.coerceIn(120f, 1200f)
+        node.isSleeping = false
+        quadTreeEngine.forceRebuild()
+        governor.transitionTo(cardId, CardLifecycleState.RESIZING)
+        viewModelScope.launch {
+            val existing = _cards.value.find { it.cardId == cardId }
+            if (existing != null) {
+                val updated = existing.copy(width = node.width, height = node.height)
+                deckRepository.upsertCard(updated)
+            }
+        }
+    }
+
+    fun onCardResizeEnd(cardId: String) {
+        governor.transitionTo(cardId, CardLifecycleState.GRID_FLOW)
     }
 
     /**

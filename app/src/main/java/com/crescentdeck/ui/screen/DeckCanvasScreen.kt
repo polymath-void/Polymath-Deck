@@ -182,6 +182,8 @@ fun DeckCanvasScreen(
                 onWakeRequested = { cardId -> deckViewModel.wakeCard(cardId) },
                 onMinimizeRequested = { cardId -> deckViewModel.hibernateCard(cardId) },
                 onCloseRequested = { cardId -> deckViewModel.removeCard(cardId) },
+                onCardResize = { cardId, w, h -> deckViewModel.onCardResize(cardId, w, h) },
+                onCardResizeEnd = { cardId -> deckViewModel.onCardResizeEnd(cardId) },
                 modifier = Modifier.weight(1f)
             )
         }
