@@ -56,14 +56,37 @@ class NodeSelectiveInvalidationState @Inject constructor() {
         }
     }
 
+    private val _floatingDeltas = MutableStateFlow<Map<String, NodeDelta>>(emptyMap())
+    val floatingDeltas: StateFlow<Map<String, NodeDelta>> = _floatingDeltas.asStateFlow()
+
+    /**
+     * Emits a transform update to a detached floating card (e.g. PiP overlay).
+     */
+    fun emitFloatingDelta(cardId: String, delta: NodeDelta) {
+        val current = _floatingDeltas.value.toMutableMap()
+        current[cardId] = delta
+        _floatingDeltas.value = current
+    }
+
+    /**
+     * Removes a card from floating state when returning to grid flow.
+     */
+    fun removeFloatingCard(cardId: String) {
+        val current = _floatingDeltas.value.toMutableMap()
+        current.remove(cardId)
+        _floatingDeltas.value = current
+    }
+
     /**
      * Cleans up flows for removed cards to prevent memory retention.
      */
     fun removeCard(cardId: String) {
         deltaFlows.remove(cardId)
+        removeFloatingCard(cardId)
     }
 
     fun clear() {
         deltaFlows.clear()
+        _floatingDeltas.value = emptyMap()
     }
 }

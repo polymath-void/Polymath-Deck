@@ -21,6 +21,8 @@ class SpringDynamicsProcessor @Inject constructor(
     var sleepThresholdVelocity: Float = 0.5f
     var positionEpsilon: Float = 0.1f
     var collisionMargin: Float = 8.0f
+    var onCollisionHaptic: ((nodeId: String) -> Unit)? = null
+    var onSnapHaptic: ((nodeId: String) -> Unit)? = null
 
     /**
      * Executes a single physics simulation tick for all active nodes in the world.
@@ -31,8 +33,8 @@ class SpringDynamicsProcessor @Inject constructor(
         val allNodes = quadTreeEngine.getAllNodes()
 
         for (node in allNodes) {
-            // Fixed obstacles and dragged nodes don't obey autonomous spring dynamics
-            if (node.isFixedObstacle) {
+            // Fixed obstacles and detached nodes don't obey autonomous spring dynamics
+            if (node.isFixedObstacle || node.isDetached) {
                 deltas[node.id] = NodeDelta(
                     offsetX = node.x - node.anchorX,
                     offsetY = node.y - node.anchorY
@@ -63,18 +65,23 @@ class SpringDynamicsProcessor @Inject constructor(
             fx -= dampingCoefficient * node.vx
             fy -= dampingCoefficient * node.vy
 
-            // Query spatial neighbors for collision repulsion
-            val neighbors = quadTreeEngine.queryNeighbors(node, collisionMargin)
+            // Query spatial neighbors for collision repulsion with dynamic gutter
+            val effectiveGutter = if (node.isBeingDragged) CollisionResolver.ACTIVE_DRAG_GUTTER else CollisionResolver.STATIC_GUTTER
+            val neighbors = quadTreeEngine.queryNeighbors(node, effectiveGutter + collisionMargin)
             for (neighbor in neighbors) {
-                if (node.overlaps(neighbor)) {
+                if (!neighbor.isDetached) {
                     val impulse = CollisionResolver.resolveSeparationImpulse(
                         a = node,
                         b = neighbor,
-                        separationStrength = separationStrength
+                        separationStrength = separationStrength,
+                        gutter = effectiveGutter
                     )
-                    fx += impulse.x
-                    fy += impulse.y
-                    node.isSleeping = false
+                    if (impulse.x != 0f || impulse.y != 0f) {
+                        fx += impulse.x
+                        fy += impulse.y
+                        node.isSleeping = false
+                        onCollisionHaptic?.invoke(node.id)
+                    }
                 }
             }
 
@@ -84,7 +91,8 @@ class SpringDynamicsProcessor @Inject constructor(
             node.x += node.vx * dt
             node.y += node.vy * dt
 
-            // Sleep detection
+            // Sleep detection and snap to anchor
+            val wasSleeping = node.isSleeping
             if (abs(node.vx) < sleepThresholdVelocity &&
                 abs(node.vy) < sleepThresholdVelocity &&
                 abs(dx) < positionEpsilon &&
@@ -95,6 +103,9 @@ class SpringDynamicsProcessor @Inject constructor(
                 node.vx = 0f
                 node.vy = 0f
                 node.isSleeping = true
+                if (!wasSleeping) {
+                    onSnapHaptic?.invoke(node.id)
+                }
             }
 
             deltas[node.id] = NodeDelta(

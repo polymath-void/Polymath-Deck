@@ -78,4 +78,17 @@ class QuadTreePhysicsEngineTest {
         assertTrue(neighbors.isNotEmpty())
         assertTrue(neighbors.any { it.id == "n_1" })
     }
+
+    @Test
+    fun testDetachedNodeExcludedFromSpatialQuery() {
+        val node1 = CardNode(id = "attached", x = 10f, y = 10f, width = 50f, height = 50f, anchorX = 10f, anchorY = 10f, isDetached = false)
+        val node2 = CardNode(id = "detached", x = 10f, y = 10f, width = 50f, height = 50f, anchorX = 10f, anchorY = 10f, isDetached = true)
+
+        engine.insertNode(node1)
+        engine.insertNode(node2)
+
+        val results = engine.queryRange(BoundingBox(0f, 0f, 100f, 100f))
+        assertEquals(1, results.size)
+        assertEquals("attached", results[0].id)
+    }
 }

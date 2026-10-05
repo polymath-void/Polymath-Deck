@@ -41,6 +41,8 @@ fun DragDropGridCanvas(
     onPiPRequested: (cardId: String) -> Unit,
     onOpenArticle: (url: String) -> Unit,
     onWakeRequested: (cardId: String) -> Unit,
+    onMinimizeRequested: ((cardId: String) -> Unit)? = null,
+    onCloseRequested: ((cardId: String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var panX by remember { mutableFloatStateOf(0f) }
@@ -76,17 +78,15 @@ fun DragDropGridCanvas(
                 governor = governor,
                 mediaPlaybackEngine = mediaPlaybackEngine,
                 themeManager = themeManager,
+                onCardDrag = onCardDrag,
+                onCardDragEnd = onCardDragEnd,
                 onFullscreenRequested = onFullscreenRequested,
                 onPiPRequested = onPiPRequested,
                 onOpenArticle = onOpenArticle,
                 onWakeRequested = onWakeRequested,
-                modifier = Modifier
-                    .offset(x = card.anchorX.dp, y = card.anchorY.dp)
-                    .pointerInput(card.cardId) {
-                        detectTransformGestures { _, pan, _, _ ->
-                            onCardDrag(card.cardId, pan.x, pan.y)
-                        }
-                    }
+                onMinimizeRequested = onMinimizeRequested,
+                onCloseRequested = onCloseRequested,
+                modifier = Modifier.offset(x = card.anchorX.dp, y = card.anchorY.dp)
             )
         }
     }

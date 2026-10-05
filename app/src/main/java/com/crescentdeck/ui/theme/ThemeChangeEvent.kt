@@ -5,6 +5,7 @@ package com.crescentdeck.ui.theme
  */
 sealed class ThemeChangeEvent {
     data class GlobalChange(val theme: CrescentTheme) : ThemeChangeEvent()
+    data class CategoryOverride(val category: String, val overrides: Map<String, String>) : ThemeChangeEvent()
     data class DeckOverride(val deckId: String, val overrides: Map<String, String>) : ThemeChangeEvent()
     data class CardOverride(val cardId: String, val cssVars: Map<String, String>) : ThemeChangeEvent()
 }

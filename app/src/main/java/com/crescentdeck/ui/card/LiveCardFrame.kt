@@ -62,10 +62,35 @@ fun LiveCardFrame(
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        // Inject computed theme CSS
-                        val css = themeManager.getComputedCssForCard(card.deckId, card.cardId)
+                        // Inject QuadTreeLayoutNormalizer and 3-level cascade theme CSS
+                        val normalizerCss = """
+                            html, body {
+                                overflow-x: hidden !important;
+                                overscroll-behavior: contain !important;
+                                touch-action: pan-y pinch-zoom !important;
+                                -webkit-overflow-scrolling: touch !important;
+                                max-width: 100% !important;
+                                box-sizing: border-box !important;
+                            }
+                            * {
+                                box-sizing: border-box !important;
+                            }
+                            ::-webkit-scrollbar {
+                                width: 4px;
+                                height: 4px;
+                            }
+                            ::-webkit-scrollbar-thumb {
+                                background: rgba(56, 189, 248, 0.4);
+                                border-radius: 4px;
+                            }
+                            ::-webkit-scrollbar-track {
+                                background: transparent;
+                            }
+                        """.trimIndent()
+                        val computedThemeCss = themeManager.getComputedCssForCard(card.deckId, card.cardId)
+                        val fullCss = "$normalizerCss\n$computedThemeCss"
                         val encodedCss = android.util.Base64.encodeToString(
-                            css.toByteArray(), android.util.Base64.NO_WRAP
+                            fullCss.toByteArray(), android.util.Base64.NO_WRAP
                         )
                         val js = """
                             (function() {
@@ -83,6 +108,21 @@ fun LiveCardFrame(
                     }
                 }
                 webChromeClient = WebChromeClient()
+
+                // Gesture Segregation: allow internal page vertical scrolling without interference
+                setOnTouchListener { v, event ->
+                    when (event.action) {
+                        android.view.MotionEvent.ACTION_DOWN,
+                        android.view.MotionEvent.ACTION_MOVE -> {
+                            v.parent?.requestDisallowInterceptTouchEvent(true)
+                        }
+                        android.view.MotionEvent.ACTION_UP,
+                        android.view.MotionEvent.ACTION_CANCEL -> {
+                            v.parent?.requestDisallowInterceptTouchEvent(false)
+                        }
+                    }
+                    false
+                }
 
                 governor.registerWebView(card.cardId, this)
                 loadUrl(targetUrl)

@@ -20,6 +20,7 @@ class ThemeManager @Inject constructor() {
     private val _currentGlobalTheme = MutableStateFlow(CrescentTheme.DefaultDark)
     val currentGlobalTheme: StateFlow<CrescentTheme> = _currentGlobalTheme.asStateFlow()
 
+    private val categoryOverrides = ConcurrentHashMap<String, Map<String, String>>()
     private val deckOverrides = ConcurrentHashMap<String, Map<String, String>>()
     private val cardOverrides = ConcurrentHashMap<String, Map<String, String>>()
 
@@ -29,6 +30,11 @@ class ThemeManager @Inject constructor() {
     fun setGlobalTheme(theme: CrescentTheme) {
         _currentGlobalTheme.value = theme
         _themeEvents.tryEmit(ThemeChangeEvent.GlobalChange(theme))
+    }
+
+    fun setCategoryOverride(category: String, overrides: Map<String, String>) {
+        categoryOverrides[category] = overrides
+        _themeEvents.tryEmit(ThemeChangeEvent.CategoryOverride(category, overrides))
     }
 
     fun setDeckOverride(deckId: String, overrides: Map<String, String>) {
@@ -43,17 +49,20 @@ class ThemeManager @Inject constructor() {
 
     /**
      * Resolves the combined CSS string to inject into card WebViews.
+     * Evaluates cascade hierarchy: Global (base) -> Category Overrides -> Deck Overrides -> Card Overrides.
      */
-    fun getComputedCssForCard(deckId: String, cardId: String): String {
+    fun getComputedCssForCard(deckId: String, cardId: String, category: String = "general"): String {
         val baseCss = _currentGlobalTheme.value.toCssVariables()
+        val catRules = categoryOverrides[category] ?: emptyMap()
         val deckRules = deckOverrides[deckId] ?: emptyMap()
         val cardRules = cardOverrides[cardId] ?: emptyMap()
 
-        if (deckRules.isEmpty() && cardRules.isEmpty()) {
+        if (catRules.isEmpty() && deckRules.isEmpty() && cardRules.isEmpty()) {
             return baseCss
         }
 
         val merged = mutableMapOf<String, String>()
+        for ((k, v) in catRules) merged[k] = v
         for ((k, v) in deckRules) merged[k] = v
         for ((k, v) in cardRules) merged[k] = v
 

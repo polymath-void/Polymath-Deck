@@ -180,6 +180,8 @@ fun DeckCanvasScreen(
                 },
                 onOpenArticle = { url -> onOpenUrlExternal(url) },
                 onWakeRequested = { cardId -> deckViewModel.wakeCard(cardId) },
+                onMinimizeRequested = { cardId -> deckViewModel.hibernateCard(cardId) },
+                onCloseRequested = { cardId -> deckViewModel.removeCard(cardId) },
                 modifier = Modifier.weight(1f)
             )
         }

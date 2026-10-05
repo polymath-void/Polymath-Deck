@@ -17,7 +17,9 @@ data class CardNode(
     var cardType: Int = 0,
     var isSleeping: Boolean = false,
     var isFixedObstacle: Boolean = false,
-    var isBeingDragged: Boolean = false
+    var isBeingDragged: Boolean = false,
+    var isDetached: Boolean = false,
+    var lifecycleState: Int = 0
 ) {
     val boundingBox: BoundingBox
         get() = BoundingBox(x, y, width, height)
@@ -119,7 +121,7 @@ class QuadTreePartition(
         }
 
         for (node in nodes) {
-            if (node.boundingBox.intersects(viewport)) {
+            if (!node.isDetached && node.boundingBox.intersects(viewport)) {
                 results.add(node)
             }
         }

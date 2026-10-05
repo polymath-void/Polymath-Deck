@@ -46,6 +46,8 @@ class DeckViewModel @Inject constructor(
     val cards: StateFlow<List<CardEntity>> = _cards.asStateFlow()
 
     init {
+        // Wire governor to spatial QuadTree
+        governor.quadTreeEngine = quadTreeEngine
         // Start high-frequency physics simulation loop
         physicsDispatcher.startSimulation(viewModelScope)
     }
