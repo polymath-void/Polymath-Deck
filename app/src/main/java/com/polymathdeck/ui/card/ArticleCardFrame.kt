@@ -32,6 +32,14 @@ import org.json.JSONObject
 /**
  * Clean reader-optimized card frame for RSS and Atom feed articles.
  */
+private data class ArticleData(
+    val title: String,
+    val author: String,
+    val summary: String,
+    val thumbnail: String,
+    val link: String
+)
+
 @Composable
 fun ArticleCardFrame(
     card: CardEntity,
@@ -41,21 +49,21 @@ fun ArticleCardFrame(
     val articleData = remember(card.contentPayload) {
         try {
             val json = JSONObject(card.contentPayload)
-            object {
-                val title = json.optString("title", "Untitled Article")
-                val author = json.optString("author", "Unknown")
-                val summary = json.optString("summary", "")
-                val thumbnail = json.optString("thumbnail", "")
-                val link = json.optString("link", "")
-            }
+            ArticleData(
+                title = json.optString("title", "Untitled Article"),
+                author = json.optString("author", "Unknown"),
+                summary = json.optString("summary", ""),
+                thumbnail = json.optString("thumbnail", ""),
+                link = json.optString("link", "")
+            )
         } catch (e: Exception) {
-            object {
-                val title = "Feed Article"
-                val author = ""
-                val summary = card.contentPayload
-                val thumbnail = ""
-                val link = ""
-            }
+            ArticleData(
+                title = "Feed Article",
+                author = "",
+                summary = card.contentPayload,
+                thumbnail = "",
+                link = ""
+            )
         }
     }
 
