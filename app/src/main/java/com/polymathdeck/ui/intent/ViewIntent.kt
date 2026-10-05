@@ -16,6 +16,7 @@ sealed class ViewIntent {
     data class RestoreNode(val nodeId: String) : ViewIntent()
     data class AddNodeFromUri(val uri: String) : ViewIntent()
     data class RemoveNode(val nodeId: String) : ViewIntent()
+    object ClearAllNodes : ViewIntent()
     data class PanViewport(val deltaX: Float, val deltaY: Float) : ViewIntent()
     data class ZoomViewport(val zoomFactor: Float) : ViewIntent()
 }

@@ -79,6 +79,10 @@ class DeckRepository @Inject constructor(
         cardDao.deleteCardById(cardId)
     }
 
+    suspend fun deleteCardsForDeck(deckId: String) = withContext(ioDispatcher) {
+        cardDao.deleteCardsForDeck(deckId)
+    }
+
     fun getAdapterForCardFlow(cardId: String): Flow<AdapterEntity?> =
         adapterDao.getAdapterForCardFlow(cardId)
 

@@ -162,6 +162,27 @@ fun DeckCanvasScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
+
+                // Clear Deck Button
+                if (cards.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFEF4444).copy(alpha = 0.2f))
+                            .clickable {
+                                deckViewModel.processIntent(ViewIntent.ClearAllNodes)
+                            }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Clear Deck",
+                            color = Color(0xFFF87171),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
 
             // 2D Physics Canvas

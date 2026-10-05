@@ -160,6 +160,9 @@ class DeckViewModel @Inject constructor(
                     _viewState.value = _viewState.value.copy(focusedCardId = null)
                 }
             }
+            is ViewIntent.ClearAllNodes -> {
+                clearAllCards()
+            }
             is ViewIntent.PanViewport -> {
                 _viewState.value = _viewState.value.copy(
                     viewportPanX = _viewState.value.viewportPanX + intent.deltaX,
@@ -210,13 +213,40 @@ class DeckViewModel @Inject constructor(
         governor.transitionTo(cardId, CardLifecycleState.GRID_FLOW)
     }
 
+    private var lastSpawnTime: Long = 0L
+    private var lastSpawnUrl: String? = null
+
     /**
      * Resolves incoming URL via ContentRouter and adds a new card to the active deck.
      */
     fun addCardFromUri(url: String) {
         val deck = _currentDeck.value ?: return
+        val raw = url.trim()
+        if (raw.isEmpty()) return
+
+        val normalizedUrl = if (raw.startsWith("http://", ignoreCase = true) || raw.startsWith("https://", ignoreCase = true)) {
+            raw
+        } else {
+            "https://$raw"
+        }
+
+        // Deduplication & rapid spawn guard (debounce within 1.5s for same URL)
+        val now = System.currentTimeMillis()
+        if (normalizedUrl == lastSpawnUrl && now - lastSpawnTime < 1500) {
+            return
+        }
+        lastSpawnUrl = normalizedUrl
+        lastSpawnTime = now
+
         viewModelScope.launch(Dispatchers.IO) {
-            val resolvedType = contentRouter.resolve(Uri.parse(url))
+            // Check if exact card already exists in the active deck
+            val existing = _cards.value.find { it.contentPayload.trim().equals(normalizedUrl, ignoreCase = true) }
+            if (existing != null) {
+                _viewState.value = _viewState.value.copy(focusedCardId = existing.cardId)
+                return@launch
+            }
+
+            val resolvedType = contentRouter.resolve(Uri.parse(normalizedUrl))
             val currentCount = _cards.value.size
             val posX = 50f + (currentCount % 3) * 340f
             val posY = 100f + (currentCount / 3) * 280f
@@ -227,7 +257,7 @@ class DeckViewModel @Inject constructor(
                 cardType = resolvedType.typeId,
                 anchorX = posX,
                 anchorY = posY,
-                contentPayload = url
+                contentPayload = normalizedUrl
             )
 
             deckRepository.upsertCard(newCard)
@@ -244,6 +274,20 @@ class DeckViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    fun clearAllCards() {
+        val deck = _currentDeck.value ?: return
+        val currentCards = _cards.value
+        currentCards.forEach { card ->
+            quadTreeEngine.removeNode(card.cardId)
+            invalidationBridge.removeCard(card.cardId)
+            governor.unregisterWebView(card.cardId)
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            deckRepository.deleteCardsForDeck(deck.deckId)
+        }
+        _viewState.value = _viewState.value.copy(focusedCardId = null)
     }
 
     fun hibernateCard(cardId: String) {
