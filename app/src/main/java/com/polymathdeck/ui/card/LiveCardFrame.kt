@@ -51,6 +51,7 @@ fun LiveCardFrame(
 
     DisposableEffect(card.cardId) {
         onDispose {
+            android.webkit.CookieManager.getInstance().flush()
             governor.unregisterWebView(card.cardId)
         }
     }
@@ -66,6 +67,12 @@ fun LiveCardFrame(
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
                 setBackgroundColor(AndroidColor.TRANSPARENT)
+
+                // SessionLoginBroker: enable persistent first and third party cookies
+                android.webkit.CookieManager.getInstance().apply {
+                    setAcceptCookie(true)
+                    setAcceptThirdPartyCookies(this@apply, true)
+                }
 
                 settings.apply {
                     javaScriptEnabled = true
@@ -125,30 +132,7 @@ fun LiveCardFrame(
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         // Inject QuadTreeLayoutNormalizer and 3-level cascade theme CSS
-                        val normalizerCss = """
-                            html, body {
-                                overflow-x: hidden !important;
-                                overscroll-behavior: contain !important;
-                                touch-action: pan-y pinch-zoom !important;
-                                -webkit-overflow-scrolling: touch !important;
-                                max-width: 100% !important;
-                                box-sizing: border-box !important;
-                            }
-                            * {
-                                box-sizing: border-box !important;
-                            }
-                            ::-webkit-scrollbar {
-                                width: 4px;
-                                height: 4px;
-                            }
-                            ::-webkit-scrollbar-thumb {
-                                background: rgba(56, 189, 248, 0.4);
-                                border-radius: 4px;
-                            }
-                            ::-webkit-scrollbar-track {
-                                background: transparent;
-                            }
-                        """.trimIndent()
+                        val normalizerCss = com.polymathdeck.engine.quadtree.QuadTreeLayoutNormalizer.generateNormalizerCss()
                         val computedThemeCss = themeManager.getComputedCssForCard(card.deckId, card.cardId)
                         val fullCss = "$normalizerCss\n$computedThemeCss"
                         val encodedCss = android.util.Base64.encodeToString(

@@ -38,7 +38,7 @@ data class CardNode(
 class QuadTreePartition(
     val bounds: BoundingBox,
     val depth: Int = 0,
-    private val maxDepth: Int = 8,
+    private val maxDepth: Int = 6,
     private val threshold: Int = 4
 ) {
     val nodes: MutableList<CardNode> = mutableListOf()
