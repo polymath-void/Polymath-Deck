@@ -1,5 +1,6 @@
 package com.crescentdeck.di
 
+import com.crescentdeck.engine.governor.DiskSnapshotManager
 import com.crescentdeck.engine.governor.MemoryPressureMonitor
 import com.crescentdeck.engine.governor.WebViewResourceGovernor
 import dagger.Module
@@ -20,7 +21,10 @@ object GovernorModule {
 
     @Provides
     @Singleton
-    fun provideWebViewResourceGovernor(monitor: MemoryPressureMonitor): WebViewResourceGovernor {
-        return WebViewResourceGovernor(monitor)
+    fun provideWebViewResourceGovernor(
+        monitor: MemoryPressureMonitor,
+        diskSnapshotManager: DiskSnapshotManager
+    ): WebViewResourceGovernor {
+        return WebViewResourceGovernor(monitor, diskSnapshotManager)
     }
 }

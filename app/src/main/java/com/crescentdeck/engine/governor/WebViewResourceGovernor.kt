@@ -7,9 +7,13 @@ import android.os.Looper
 import android.view.ViewGroup
 import android.webkit.WebView
 import com.crescentdeck.engine.quadtree.QuadTreePhysicsEngine
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -45,7 +49,8 @@ enum class CardLifecycleState {
  */
 @Singleton
 class WebViewResourceGovernor @Inject constructor(
-    private val memoryMonitor: MemoryPressureMonitor
+    private val memoryMonitor: MemoryPressureMonitor,
+    val diskSnapshotManager: DiskSnapshotManager? = null
 ) {
 
     companion object {
@@ -56,6 +61,7 @@ class WebViewResourceGovernor @Inject constructor(
     var quadTreeEngine: QuadTreePhysicsEngine? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val diskScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val trackedViews = ConcurrentHashMap<String, WeakReference<WebView>>()
     private val cardStates = ConcurrentHashMap<String, CardResourceState>()
     private val lifecycleStates = ConcurrentHashMap<String, CardLifecycleState>()
@@ -100,6 +106,11 @@ class WebViewResourceGovernor @Inject constructor(
         lifecycleStates.remove(cardId)
         accessTimestamps.remove(cardId)
         snapshotBitmaps.remove(cardId)?.recycle()
+        diskSnapshotManager?.let { mgr ->
+            diskScope.launch {
+                mgr.deleteSnapshot(cardId)
+            }
+        }
         _floatingCards.value = _floatingCards.value - cardId
         emitStateChange()
     }
@@ -115,13 +126,39 @@ class WebViewResourceGovernor @Inject constructor(
             webView.draw(canvas)
             snapshotBitmaps[cardId]?.recycle()
             snapshotBitmaps[cardId] = bitmap
+            diskSnapshotManager?.let { mgr ->
+                diskScope.launch {
+                    mgr.saveSnapshot(cardId, bitmap)
+                }
+            }
             bitmap
         } catch (e: Exception) {
             null
         }
     }
 
-    fun getSnapshot(cardId: String): Bitmap? = snapshotBitmaps[cardId]
+    fun getSnapshot(cardId: String): Bitmap? {
+        val memorySnapshot = snapshotBitmaps[cardId]
+        if (memorySnapshot != null && !memorySnapshot.isRecycled) {
+            return memorySnapshot
+        }
+        return null
+    }
+
+    /**
+     * Loads the card's visual snapshot from disk cache if evicted from memory.
+     */
+    suspend fun loadSnapshotFromDisk(cardId: String): Bitmap? {
+        val memorySnapshot = snapshotBitmaps[cardId]
+        if (memorySnapshot != null && !memorySnapshot.isRecycled) {
+            return memorySnapshot
+        }
+        val diskBitmap = diskSnapshotManager?.loadSnapshot(cardId)
+        if (diskBitmap != null) {
+            snapshotBitmaps[cardId] = diskBitmap
+        }
+        return diskBitmap
+    }
 
     /**
      * Transitions [cardId] to [targetState] following the 4-tier lifecycle state machine.

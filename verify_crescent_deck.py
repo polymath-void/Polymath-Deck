@@ -80,6 +80,35 @@ def main():
     assert "setCategoryOverride" in theme_kt, "setCategoryOverride missing"
     print("✅ Verified ThemeManager 3-level cascade (Global -> Category -> Deck/Card).")
 
+    # MVI Architecture & ViewState Store
+    viewmodel_kt = (src_dir / "viewmodel/DeckViewModel.kt").read_text(encoding="utf-8")
+    assert "fun processIntent(intent: ViewIntent)" in viewmodel_kt, "processIntent missing in DeckViewModel"
+    assert "val viewState: StateFlow<DeckViewState>" in viewmodel_kt, "viewState StateFlow missing in DeckViewModel"
+    print("✅ Verified MVI Subsystem: ViewIntent and reactive DeckViewState single source of truth.")
+
+    # QuadTree Depth 8 & Object Allocation Zero-Impulse Cache
+    quadtree_kt = (src_dir / "engine/quadtree/QuadTreeNode.kt").read_text(encoding="utf-8")
+    assert "maxDepth: Int = 8" in quadtree_kt, "QuadTreePartition maxDepth 8 missing"
+    assert "val ZERO = Vector2D(0f, 0f)" in collision_kt, "Vector2D.ZERO cache missing in CollisionResolver"
+    print("✅ Verified QuadTree Hardening (maxDepth = 8, threshold = 4) and Vector2D impulse allocation caching.")
+
+    # DiskSnapshotManager & Governor Disk Persistence
+    disk_snapshot_file = src_dir / "engine/governor/DiskSnapshotManager.kt"
+    assert disk_snapshot_file.exists(), "DiskSnapshotManager.kt does not exist"
+    disk_snapshot_kt = disk_snapshot_file.read_text(encoding="utf-8")
+    assert "suspend fun saveSnapshot" in disk_snapshot_kt, "saveSnapshot missing in DiskSnapshotManager"
+    assert "suspend fun loadSnapshot" in disk_snapshot_kt, "loadSnapshot missing in DiskSnapshotManager"
+    assert "diskSnapshotManager" in governor_kt, "diskSnapshotManager reference missing in WebViewResourceGovernor"
+    assert "loadSnapshotFromDisk" in governor_kt, "loadSnapshotFromDisk missing in WebViewResourceGovernor"
+    print("✅ Verified DiskSnapshotManager and disk-backed bitmap snapshot cache.")
+
+    # LiveCardFrame Hardened Settings & Link Interception Spawning Cards
+    live_card_kt = (src_dir / "ui/card/LiveCardFrame.kt").read_text(encoding="utf-8")
+    assert "databaseEnabled = true" in live_card_kt, "databaseEnabled = true missing in LiveCardFrame"
+    assert "shouldOverrideUrlLoading" in live_card_kt, "shouldOverrideUrlLoading missing in LiveCardFrame"
+    assert "onOpenUrlAsCard" in live_card_kt, "onOpenUrlAsCard parameter missing in LiveCardFrame"
+    print("✅ Verified LiveCardFrame databaseEnabled and URL navigation interception spawning new canvas nodes.")
+
     # 5. Verify Gradle configuration
     toml_path = workspace / "gradle/libs.versions.toml"
     assert toml_path.exists(), "libs.versions.toml missing"

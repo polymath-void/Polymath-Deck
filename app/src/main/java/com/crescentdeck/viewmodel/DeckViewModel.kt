@@ -15,7 +15,10 @@ import com.crescentdeck.engine.quadtree.CardNode
 import com.crescentdeck.engine.quadtree.QuadTreePhysicsEngine
 import com.crescentdeck.engine.router.ContentRouter
 import com.crescentdeck.recovery.CrashRecoveryManager
+import com.crescentdeck.ui.intent.DeckViewState
+import com.crescentdeck.ui.intent.ViewIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,6 +49,9 @@ class DeckViewModel @Inject constructor(
     private val _cards = MutableStateFlow<List<CardEntity>>(emptyList())
     val cards: StateFlow<List<CardEntity>> = _cards.asStateFlow()
 
+    private val _viewState = MutableStateFlow(DeckViewState())
+    val viewState: StateFlow<DeckViewState> = _viewState.asStateFlow()
+
     init {
         // Wire governor to spatial QuadTree
         governor.quadTreeEngine = quadTreeEngine
@@ -64,12 +70,14 @@ class DeckViewModel @Inject constructor(
                 deckRepository.upsertDeck(deck)
             }
             _currentDeck.value = deck
+            _viewState.value = _viewState.value.copy(currentDeck = deck, isLoading = false)
 
             // Attempt crash recovery restoration
             val restored = recoveryManager.attemptRestore(deckId)
 
             deckRepository.getCardsForDeckFlow(deckId).onEach { cardEntities ->
                 _cards.value = cardEntities
+                _viewState.value = _viewState.value.copy(cards = cardEntities)
 
                 if (!restored) {
                     // Populate QuadTree with initial positions from Room
@@ -95,9 +103,80 @@ class DeckViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Unified Model-View-Intent (MVI) entry point. Dispatches all user actions
+     * to the spatial engine, resource governor, and reactive ViewState.
+     */
+    fun processIntent(intent: ViewIntent) {
+        when (intent) {
+            is ViewIntent.DragStart -> {
+                val node = quadTreeEngine.locateNode(intent.nodeId)
+                if (node != null) {
+                    node.isBeingDragged = true
+                    node.isSleeping = false
+                }
+                _viewState.value = _viewState.value.copy(focusedCardId = intent.nodeId)
+            }
+            is ViewIntent.UpdatePosition -> {
+                onCardDrag(intent.nodeId, intent.deltaX, intent.deltaY)
+            }
+            is ViewIntent.DragEnd -> {
+                onCardDragEnd(intent.nodeId)
+            }
+            is ViewIntent.ResizeStart -> {
+                val node = quadTreeEngine.locateNode(intent.nodeId)
+                if (node != null) {
+                    node.isSleeping = false
+                }
+                governor.transitionTo(intent.nodeId, CardLifecycleState.RESIZING)
+                _viewState.value = _viewState.value.copy(focusedCardId = intent.nodeId)
+            }
+            is ViewIntent.UpdateSize -> {
+                onCardResize(intent.nodeId, intent.newWidth, intent.newHeight)
+            }
+            is ViewIntent.ResizeEnd -> {
+                onCardResizeEnd(intent.nodeId)
+            }
+            is ViewIntent.ToggleImmersive -> {
+                val current = governor.lifecycleEvents.value[intent.nodeId]
+                if (current == CardLifecycleState.IMMERSIVE) {
+                    governor.transitionTo(intent.nodeId, CardLifecycleState.GRID_FLOW)
+                } else {
+                    governor.transitionTo(intent.nodeId, CardLifecycleState.IMMERSIVE)
+                }
+            }
+            is ViewIntent.MinimizeNode -> {
+                hibernateCard(intent.nodeId)
+            }
+            is ViewIntent.RestoreNode -> {
+                wakeCard(intent.nodeId)
+            }
+            is ViewIntent.AddNodeFromUri -> {
+                addCardFromUri(intent.uri)
+            }
+            is ViewIntent.RemoveNode -> {
+                removeCard(intent.nodeId)
+                if (_viewState.value.focusedCardId == intent.nodeId) {
+                    _viewState.value = _viewState.value.copy(focusedCardId = null)
+                }
+            }
+            is ViewIntent.PanViewport -> {
+                _viewState.value = _viewState.value.copy(
+                    viewportPanX = _viewState.value.viewportPanX + intent.deltaX,
+                    viewportPanY = _viewState.value.viewportPanY + intent.deltaY
+                )
+            }
+            is ViewIntent.ZoomViewport -> {
+                val newScale = (_viewState.value.viewportScale * intent.zoomFactor).coerceIn(0.2f, 3.0f)
+                _viewState.value = _viewState.value.copy(viewportScale = newScale)
+            }
+        }
+    }
+
     fun onCardDrag(cardId: String, deltaX: Float, deltaY: Float) {
         val node = quadTreeEngine.locateNode(cardId) ?: return
         node.isBeingDragged = true
+        node.isSleeping = false
         node.x += deltaX
         node.y += deltaY
         quadTreeEngine.updateNodePosition(cardId, node.x, node.y)
@@ -106,7 +185,7 @@ class DeckViewModel @Inject constructor(
     fun onCardDragEnd(cardId: String) {
         val node = quadTreeEngine.locateNode(cardId) ?: return
         node.isBeingDragged = false
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             deckRepository.updateCardPosition(cardId, node.x, node.y)
         }
     }
@@ -118,7 +197,7 @@ class DeckViewModel @Inject constructor(
         node.isSleeping = false
         quadTreeEngine.forceRebuild()
         governor.transitionTo(cardId, CardLifecycleState.RESIZING)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val existing = _cards.value.find { it.cardId == cardId }
             if (existing != null) {
                 val updated = existing.copy(width = node.width, height = node.height)
@@ -136,7 +215,7 @@ class DeckViewModel @Inject constructor(
      */
     fun addCardFromUri(url: String) {
         val deck = _currentDeck.value ?: return
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val resolvedType = contentRouter.resolve(Uri.parse(url))
             val currentCount = _cards.value.size
             val posX = 50f + (currentCount % 3) * 340f
@@ -169,14 +248,14 @@ class DeckViewModel @Inject constructor(
 
     fun hibernateCard(cardId: String) {
         governor.hibernateCard(cardId)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             deckRepository.updateCardHibernation(cardId, true)
         }
     }
 
     fun wakeCard(cardId: String) {
         governor.wakeCard(cardId)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             deckRepository.updateCardHibernation(cardId, false)
         }
     }
@@ -185,7 +264,7 @@ class DeckViewModel @Inject constructor(
         quadTreeEngine.removeNode(cardId)
         invalidationBridge.removeCard(cardId)
         governor.unregisterWebView(cardId)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             deckRepository.deleteCard(cardId)
         }
     }

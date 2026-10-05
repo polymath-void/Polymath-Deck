@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.util.UnstableApi
 import com.crescentdeck.ui.canvas.DragDropGridCanvas
+import com.crescentdeck.ui.intent.ViewIntent
 import com.crescentdeck.ui.tab.TabStripRail
 import com.crescentdeck.ui.theme.CrescentTheme
 import com.crescentdeck.ui.theme.ThemeManager
@@ -170,20 +171,24 @@ fun DeckCanvasScreen(
                 governor = deckViewModel.governor,
                 mediaPlaybackEngine = mediaViewModel.mediaPlaybackEngine,
                 themeManager = themeManager,
-                onCardDrag = { cardId, dx, dy -> deckViewModel.onCardDrag(cardId, dx, dy) },
-                onCardDragEnd = { cardId -> deckViewModel.onCardDragEnd(cardId) },
-                onFullscreenRequested = { cardId -> onLaunchFullscreen(cardId) },
+                onCardDrag = { cardId, dx, dy -> deckViewModel.processIntent(ViewIntent.UpdatePosition(cardId, dx, dy)) },
+                onCardDragEnd = { cardId -> deckViewModel.processIntent(ViewIntent.DragEnd(cardId)) },
+                onFullscreenRequested = { cardId ->
+                    deckViewModel.processIntent(ViewIntent.ToggleImmersive(cardId))
+                    onLaunchFullscreen(cardId)
+                },
                 onPiPRequested = {
                     if (activity != null) {
                         mediaViewModel.enterPiP(activity)
                     }
                 },
                 onOpenArticle = { url -> onOpenUrlExternal(url) },
-                onWakeRequested = { cardId -> deckViewModel.wakeCard(cardId) },
-                onMinimizeRequested = { cardId -> deckViewModel.hibernateCard(cardId) },
-                onCloseRequested = { cardId -> deckViewModel.removeCard(cardId) },
-                onCardResize = { cardId, w, h -> deckViewModel.onCardResize(cardId, w, h) },
-                onCardResizeEnd = { cardId -> deckViewModel.onCardResizeEnd(cardId) },
+                onWakeRequested = { cardId -> deckViewModel.processIntent(ViewIntent.RestoreNode(cardId)) },
+                onMinimizeRequested = { cardId -> deckViewModel.processIntent(ViewIntent.MinimizeNode(cardId)) },
+                onCloseRequested = { cardId -> deckViewModel.processIntent(ViewIntent.RemoveNode(cardId)) },
+                onCardResize = { cardId, w, h -> deckViewModel.processIntent(ViewIntent.UpdateSize(cardId, w, h)) },
+                onCardResizeEnd = { cardId -> deckViewModel.processIntent(ViewIntent.ResizeEnd(cardId)) },
+                onOpenUrlAsCard = { url -> deckViewModel.processIntent(ViewIntent.AddNodeFromUri(url)) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -221,7 +226,7 @@ fun DeckCanvasScreen(
                     Button(
                         onClick = {
                             if (inputUrl.isNotBlank()) {
-                                deckViewModel.addCardFromUri(inputUrl.trim())
+                                deckViewModel.processIntent(ViewIntent.AddNodeFromUri(inputUrl.trim()))
                                 inputUrl = ""
                                 showAddCardDialog = false
                             }

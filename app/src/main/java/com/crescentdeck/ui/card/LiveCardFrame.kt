@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Color as AndroidColor
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -20,7 +21,8 @@ import com.crescentdeck.ui.theme.ThemeManager
 
 /**
  * Hosts an active, sandboxed Android WebView inside a spatial card container.
- * Dynamically injects theme CSS variables and adheres to Governor memory throttling.
+ * Dynamically injects theme CSS variables, handles URL interception to spawn new nodes,
+ * and adheres to Governor memory throttling.
  */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -28,6 +30,7 @@ fun LiveCardFrame(
     card: CardEntity,
     governor: WebViewResourceGovernor,
     themeManager: ThemeManager,
+    onOpenUrlAsCard: ((url: String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -54,12 +57,32 @@ fun LiveCardFrame(
                 settings.apply {
                     javaScriptEnabled = true
                     domStorageEnabled = true
+                    databaseEnabled = true
                     cacheMode = WebSettings.LOAD_DEFAULT
                     loadWithOverviewMode = true
                     useWideViewPort = true
                 }
 
                 webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                        val url = request?.url?.toString() ?: return false
+                        return handleUrlInterception(url)
+                    }
+
+                    @Suppress("DEPRECATION")
+                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                        if (url == null) return false
+                        return handleUrlInterception(url)
+                    }
+
+                    private fun handleUrlInterception(url: String): Boolean {
+                        if (url == targetUrl) return false
+                        if (onOpenUrlAsCard != null) {
+                            onOpenUrlAsCard(url)
+                            return true // Intercept: keep current card intact, spawn new card node on canvas
+                        }
+                        return false
+                    }
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         // Inject QuadTreeLayoutNormalizer and 3-level cascade theme CSS

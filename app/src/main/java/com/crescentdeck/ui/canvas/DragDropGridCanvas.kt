@@ -58,6 +58,7 @@ fun DragDropGridCanvas(
     onCloseRequested: ((cardId: String) -> Unit)? = null,
     onCardResize: ((cardId: String, newWidth: Float, newHeight: Float) -> Unit)? = null,
     onCardResizeEnd: ((cardId: String) -> Unit)? = null,
+    onOpenUrlAsCard: ((url: String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var panX by remember { mutableFloatStateOf(0f) }
@@ -158,6 +159,7 @@ fun DragDropGridCanvas(
                 onCloseRequested = onCloseRequested,
                 onCardResize = onCardResize,
                 onCardResizeEnd = onCardResizeEnd,
+                onOpenUrlAsCard = onOpenUrlAsCard,
                 modifier = Modifier.offset(x = card.anchorX.dp, y = card.anchorY.dp)
             )
         }

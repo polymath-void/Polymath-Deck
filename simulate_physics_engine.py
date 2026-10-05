@@ -70,7 +70,7 @@ class CardNode:
         return Box(self.x, self.y, self.w, self.h)
 
 class QuadTree:
-    def __init__(self, bounds, depth=0, max_depth=6, threshold=4):
+    def __init__(self, bounds, depth=0, max_depth=8, threshold=4):
         self.bounds = bounds
         self.depth = depth
         self.max_depth = max_depth

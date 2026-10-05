@@ -74,6 +74,7 @@ fun SelectiveCardNodeContainer(
     onCloseRequested: ((cardId: String) -> Unit)? = null,
     onCardResize: ((cardId: String, newWidth: Float, newHeight: Float) -> Unit)? = null,
     onCardResizeEnd: ((cardId: String) -> Unit)? = null,
+    onOpenUrlAsCard: ((url: String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val lifecycleEvents by governor.lifecycleEvents.collectAsState()
@@ -90,6 +91,13 @@ fun SelectiveCardNodeContainer(
     var currentWidth by remember(card.width) { mutableFloatStateOf(card.width) }
     var currentHeight by remember(card.height) { mutableFloatStateOf(card.height) }
     var isInteractingWithResize by remember { mutableStateOf(false) }
+
+    var diskSnapshot by remember(card.cardId) { mutableStateOf<android.graphics.Bitmap?>(governor.getSnapshot(card.cardId)) }
+    androidx.compose.runtime.LaunchedEffect(card.cardId, card.isHibernated) {
+        if (card.isHibernated && diskSnapshot == null) {
+            diskSnapshot = governor.loadSnapshotFromDisk(card.cardId)
+        }
+    }
 
     // Dynamic Z-Axis elevation and physical properties
     val elevation = when {
@@ -168,12 +176,17 @@ fun SelectiveCardNodeContainer(
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (card.isHibernated) {
                             HibernationScrimOverlay(
-                                snapshot = governor.getSnapshot(card.cardId),
+                                snapshot = diskSnapshot ?: governor.getSnapshot(card.cardId),
                                 onWakeRequested = { onWakeRequested(card.cardId) }
                             )
                         } else {
                             when (CardType.fromId(card.cardType)) {
-                                CardType.WEB -> LiveCardFrame(card, governor, themeManager)
+                                CardType.WEB -> LiveCardFrame(
+                                    card = card,
+                                    governor = governor,
+                                    themeManager = themeManager,
+                                    onOpenUrlAsCard = onOpenUrlAsCard ?: onOpenArticle
+                                )
                                 CardType.VIDEO -> VideoCardFrame(card, mediaPlaybackEngine, onFullscreenRequested, onPiPRequested)
                                 CardType.ARTICLE -> ArticleCardFrame(card, onOpenArticle)
                                 CardType.AUDIO -> AudioCardFrame(card, mediaPlaybackEngine)

@@ -10,7 +10,11 @@ import kotlin.math.min
  */
 object CollisionResolver {
 
-    data class Vector2D(val x: Float, val y: Float)
+    data class Vector2D(val x: Float, val y: Float) {
+        companion object {
+            val ZERO = Vector2D(0f, 0f)
+        }
+    }
 
     const val STATIC_GUTTER: Float = 16f
     const val ACTIVE_DRAG_GUTTER: Float = 24f
@@ -37,7 +41,7 @@ object CollisionResolver {
         val overlapY = min(aBox.bottom, bBox.bottom) - max(aBox.top, bBox.top) + gutter
 
         if (overlapX <= 0f || overlapY <= 0f) {
-            return Vector2D(0f, 0f)
+            return Vector2D.ZERO
         }
 
         // Separate along the axis of least penetration
@@ -60,15 +64,15 @@ object CollisionResolver {
         separationStrength: Float = 800f,
         gutter: Float = getEffectiveGutter(a, b)
     ): Vector2D {
-        if (a.isDetached || b.isDetached) return Vector2D(0f, 0f)
+        if (a.isDetached || b.isDetached) return Vector2D.ZERO
 
         val pen = computePenetrationVector(a, b, gutter)
-        if (pen.x == 0f && pen.y == 0f) return Vector2D(0f, 0f)
+        if (pen.x == 0f && pen.y == 0f) return Vector2D.ZERO
 
         // When [a] is held by the user (being dragged), [a] doesn't yield to impulse;
         // neighbor [b] yields 100%.
         if (a.isBeingDragged) {
-            return Vector2D(0f, 0f)
+            return Vector2D.ZERO
         }
 
         val ratio = if (b.isBeingDragged) {
