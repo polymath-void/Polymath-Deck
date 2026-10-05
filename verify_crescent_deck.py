@@ -109,7 +109,7 @@ def main():
     assert "onOpenUrlAsCard" in live_card_kt, "onOpenUrlAsCard parameter missing in LiveCardFrame"
     print("✅ Verified LiveCardFrame databaseEnabled and URL navigation interception spawning new canvas nodes.")
 
-    # 5. Verify Gradle configuration
+    # 5. Verify Gradle configuration & CI/CD APK Build Pipeline
     toml_path = workspace / "gradle/libs.versions.toml"
     assert toml_path.exists(), "libs.versions.toml missing"
     toml_content = toml_path.read_text(encoding="utf-8")
@@ -117,7 +117,17 @@ def main():
     assert "compose-bom" in toml_content, "Compose BOM missing in version catalog"
     assert "room" in toml_content, "Room missing in version catalog"
     assert "hilt" in toml_content, "Hilt missing in version catalog"
-    print("✅ Verified Gradle version catalog dependencies.")
+    
+    workflow_path = workspace / ".github/workflows/build_apk.yml"
+    assert workflow_path.exists(), "build_apk.yml missing in .github/workflows"
+    workflow_yaml = workflow_path.read_text(encoding="utf-8")
+    assert "assembleDebug" in workflow_yaml, "assembleDebug missing in workflow"
+    assert "upload-artifact" in workflow_yaml, "upload-artifact missing in workflow"
+
+    assert (workspace / "gradlew").exists(), "gradlew missing"
+    assert (workspace / "gradle/wrapper/gradle-wrapper.properties").exists(), "gradle-wrapper.properties missing"
+    assert (workspace / "gradle/wrapper/gradle-wrapper.jar").exists(), "gradle-wrapper.jar missing"
+    print("✅ Verified Gradle version catalog, Gradle wrapper, and GitHub Actions APK build workflow.")
 
     # 6. Run simulate_physics_engine.py verification suite
     sim_script = workspace / "simulate_physics_engine.py"
